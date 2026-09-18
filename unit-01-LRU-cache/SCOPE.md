@@ -12,20 +12,22 @@ The unit is intended to demonstrate cache behavior, service boundaries, failure 
 
 ## Scope
 
-- Create one Node.js HTTP service with separate application, store, and cache boundaries.
+- Create one Node.js HTTP service using TypeScript, Fastify, npm, and Vitest, with separate application, store, and cache boundaries. This establishes the HTTP framework, package manager, and test runner for later units.
 - Keep the LRU cache in its own module and bounded context. It is in-process and in-memory, not a separately deployed service.
-- Expose the smallest useful store workflow:
-  - read a product and its current inventory;
-  - attempt to purchase one unit of a product.
-- Expose a cache statistics endpoint that reports hits, misses, evictions, and hit rate.
+- Expose the smallest useful store workflow through a fixed HTTP contract:
+  - `GET /products/:id` reads a product and its current inventory;
+  - `POST /products/:id/purchase` attempts to purchase one unit of a product;
+  - `GET /cache/stats` reports cache hits, misses, evictions, and hit rate.
+- Return JSON error envelopes in the form `{ "error": { "code": string, "message": string } }`. Use conventional HTTP statuses, including `404` for an unknown product, `409` for insufficient inventory, and `503` when the authoritative store operation fails.
 - Use cache-aside for product reads:
   1. the application asks the cache module for the product;
   2. on a cache hit, the API returns the cached value;
   3. on a cache miss, the API calls the authoritative fake store, returns the value, and populates the cache.
-- On a successful purchase, update the authoritative store first and then invalidate the cached product entry.
-- Simulate slow authoritative reads with an artificial 80 ms delay so cache hits and misses perform observably different work.
+- On a successful purchase, update the authoritative store first and then invalidate the cached product entry with `delete`.
+- Make `store.purchaseOne(productId)` the sole inventory transition. It must perform the availability check and decrement atomically, without an `await` between them.
+- Simulate slow authoritative reads with an artificial 80 ms delay so cache hits and misses perform observably different work. Do not apply this synthetic delay to purchases.
 - Implement the cache's LRU eviction policy from scratch using a hash map plus a doubly linked list.
-- Give the cache boundary `get`, `put`, and statistics operations. Both `get` and `put` must run in average O(1) time while updating recency order.
+- Implement the cache as a reusable generic `LruCache<K, V>` with public `get`, `put`, `delete`, and `stats` operations. `get`, `put`, and `delete` must run in average O(1) time, with `get` and `put` updating recency order.
 - Add focused automated tests for LRU ordering and eviction, cache hit and miss behavior, purchase-driven invalidation, and statistics.
 - Build a pressure-test harness to exercise the API and collect reproducible throughput and cache-effectiveness measurements.
 - Develop the core behavior with red-green TDD. Add property-based tests after the example-based core tests pass.
@@ -38,7 +40,7 @@ The authoritative product and inventory state lives in the store API's data stor
 
 Reads are eventually consistent. A product response can be stale between a successful inventory change and cache invalidation, or when invalidation fails. A purchase must validate inventory against the authoritative store before it succeeds.
 
-The cache is separated from store and application concerns by a module boundary, not a network boundary. The application owns the cache-aside policy; domain code should depend on the cache module's small public interface rather than on its hash map or linked-list implementation.
+The cache is separated from store and application concerns by a module boundary, not a network boundary. The application owns the cache-aside policy; domain code should depend on the generic cache module's small public interface rather than on its hash map or linked-list implementation.
 
 ## Cost of a Stale Read
 
@@ -65,7 +67,7 @@ Write-behind is not selected because it would acknowledge work before the author
 - Product and inventory data may be held in memory; durability across process restarts is not required.
 - The exercise runs locally with a single API process and an in-process cache instance.
 - A purchase requests one unit at a time.
-- Inventory updates within the authoritative store are synchronous and atomic for this single-process demonstration.
+- Inventory updates go through `store.purchaseOne(productId)` and are synchronous and atomic for this single-process demonstration.
 - Cache capacity is configurable and small enough that an in-memory implementation is appropriate.
 - Cache entries contain whole product-read responses keyed by product ID.
 - The cache may be empty after restart without affecting correctness.
@@ -84,6 +86,7 @@ Write-behind is not selected because it would acknowledge work before the author
 - Overselling based on cached inventory.
 - Retry queues, idempotency keys, distributed transactions, or exactly-once processing.
 - Cache warming, compression, persistence, or advanced eviction policies.
+- A formal immutable data model, generalized defensive copying, or public value-ownership guarantees for cached objects.
 - Treating TTL as required if the core implementation and tests consume the timebox.
 - Production observability, security hardening, deployment automation, or load testing.
 
@@ -100,10 +103,11 @@ Write-behind is not selected because it would acknowledge work before the author
 ## Definition of Done
 
 - `SCOPE.md` is committed before implementation.
-- The API runs locally using the repository's chosen TypeScript, Node.js, HTTP framework, and test runner.
-- The LRU module uses a hash map plus a doubly linked list and implements average O(1) `get` and `put` operations.
+- The API runs locally using TypeScript on Node.js with Fastify, npm, and Vitest.
+- The generic `LruCache<K, V>` module uses a hash map plus a doubly linked list and implements average O(1) `get`, `put`, and `delete` operations.
+- The API implements the fixed product, purchase, and cache-statistics routes and returns the defined JSON error envelope with the appropriate HTTP status.
 - Product reads demonstrate cache miss, cache population, cache hit, and LRU eviction.
-- A successful purchase updates authoritative inventory and attempts cache invalidation.
+- A successful purchase atomically updates authoritative inventory through `store.purchaseOne(productId)` and then attempts cache invalidation.
 - A purchase cannot succeed from cached inventory alone.
 - The statistics endpoint reports hits, misses, evictions, and hit rate.
 - The fake slow store applies an artificial 80 ms read delay.
