@@ -1,7 +1,12 @@
 import Fastify, { type FastifyInstance } from "fastify";
 
 import type { CacheStats } from "./cache/lru-cache.js";
-import type { Product, ProductStore } from "./store/fake-product-store.js";
+import {
+  InsufficientInventoryError,
+  type Product,
+  type ProductStore,
+  UnknownProductError,
+} from "./store/fake-product-store.js";
 
 export interface ProductCache {
   get(key: string): Product | undefined;
@@ -55,6 +60,44 @@ export function createApp({
     cache.put(id, product);
     return product;
   });
+
+  app.post<{ Params: { id: string } }>(
+    "/products/:id/purchase",
+    async (request, reply) => {
+      const { id } = request.params;
+      let product: Product;
+
+      try {
+        product = store.purchaseOne(id);
+      } catch (cause) {
+        if (cause instanceof UnknownProductError) {
+          return reply
+            .code(404)
+            .send(error("PRODUCT_NOT_FOUND", cause.message));
+        }
+        if (cause instanceof InsufficientInventoryError) {
+          return reply
+            .code(409)
+            .send(error("INSUFFICIENT_INVENTORY", cause.message));
+        }
+
+        request.log.error({ cause, productId: id }, "authoritative write failed");
+        return reply
+          .code(503)
+          .send(
+            error("STORE_UNAVAILABLE", "The authoritative store is unavailable"),
+          );
+      }
+
+      try {
+        cache.delete(id);
+      } catch (cause) {
+        request.log.error({ cause, productId: id }, "cache invalidation failed");
+      }
+
+      return product;
+    },
+  );
 
   return app;
 }
