@@ -99,5 +99,7 @@ export function createApp({
     },
   );
 
+  app.get("/cache/stats", async () => cache.stats());
+
   return app;
 }
