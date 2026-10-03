@@ -32,6 +32,14 @@ QUERY_API_BASE_URL=http://127.0.0.1:4000 npm run query -- "How do I file a cargo
 
 `PORT`, `CORPUS_DIR`, `OLLAMA_URL`, and `OLLAMA_MODEL` can override the service defaults.
 
+For a compact trace of retrieval and the model-verifier exchange, start the service with debug tracing:
+
+```sh
+RAG_DEBUG=true npm start
+```
+
+Each query logs the retrieved source metadata, generated draft, verification result and reason, retry findings when applicable, and final cited document IDs. It does not dump the full prompt or corpus text. Because drafts and questions may still be sensitive, tracing is off by default.
+
 ## Architecture
 
 Startup reads every Markdown file in `corpus/`, validates its visible title and metadata line, drops documents whose status is not `Current`, and creates an in-memory FTS5 table. Each source document remains one retrieval unit. The Porter tokenizer handles small word-form differences, and BM25 gives the title extra weight. Retrieval is fixed at three documents.
@@ -87,7 +95,7 @@ If Ollama is unreachable or the model is missing, the service returns `503`. Tim
 
 Measurements below were made locally on October 3, 2026 with Node `v22.22.3`, Ollama on loopback, and `qwen3:8b` (`Q4_K_M`). They are observations, not performance guarantees.
 
-- `npm test`: 5 files and 22 tests passed in 0.334 seconds in the CLI follow-up run.
+- `npm test`: 5 files and 23 tests passed in the debug-tracing follow-up run.
 - `npm run typecheck` and `npm run build`: both completed successfully.
 - Detention request: HTTP 200 in 5.739 seconds. It cited current `KFL-OPS-01` and related layover policy `KFL-OPS-02`.
 - Cargo-claims request: HTTP 200 in 6.451 seconds. It cited `KFL-CLM-01`, revision `2025-07`, from `cargo-claims.md`; the superseded 2024 file was absent.

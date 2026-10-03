@@ -70,6 +70,7 @@ Example hot path:
 - **SQLite or corpus initialization failure:** fail startup rather than serve an incomplete index.
 - **Malformed document metadata:** fail startup with the affected source file identified so corpus state is explicit.
 - **Weak lexical match:** return "Not in the handbook. Please consult the proper web portal." FTS5 will miss semantic matches that do not share useful terms; that limitation is accepted for this unit.
+- **Multi-document comparison phrasing:** a comparative question can retrieve one relevant policy while lexical noise or a compound spelling such as `freetime` pushes the other relevant policy below the fixed top-three cutoff. Query rewriting, synonym expansion, and corpus-specific term normalization are deferred rather than adding a brittle fix inside the timebox. A production iteration should use hybrid retrieval: combine semantic results from embeddings in a vector database with BM25 candidates, then rerank the merged set before constructing context.
 - **Large or adversarial input:** reject requests over a small configured body/question limit.
 - **Long retrieved documents:** cap the result count and prompt size; truncation may reduce answer completeness but must not invent missing facts.
 - **Concurrent requests:** the local model may serialize or slow under load. Capacity management is documented as production work, not solved here.
@@ -117,6 +118,7 @@ This unit will not include a general evaluation harness or claim model-quality m
 
 - Embeddings, vector search, a vector database, hybrid retrieval, or semantic search.
 - Re-ranking retrieved documents.
+- Query rewriting, synonym expansion, or corpus-specific spelling normalization.
 - A model-quality evaluation harness, benchmark dataset, or quality score.
 - Authentication, authorization, tenant isolation, or user management.
 - A browser UI, chat interface, or conversation history.

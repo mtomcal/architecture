@@ -84,6 +84,42 @@ describe("QueryService", () => {
     expect(model.verify).toHaveBeenCalledTimes(2);
   });
 
+  it("traces retrieval, model exchanges, and completion when enabled", async () => {
+    const retriever = {
+      search: vi.fn().mockReturnValue([document]),
+    } as unknown as HandbookRetriever;
+    const model: GroundingModel = {
+      generate: vi.fn().mockResolvedValue("Free time is two hours. [KFL-OPS-01]"),
+      verify: vi
+        .fn()
+        .mockResolvedValue({ supported: true, unsupportedClaims: [], reason: "Supported." }),
+    };
+    const trace = vi.fn();
+    const service = new QueryService(retriever, model, trace);
+
+    await service.query("How long is free time?");
+
+    expect(trace.mock.calls.map(([event]) => event.stage)).toEqual([
+      "retrieval",
+      "generation",
+      "verification",
+      "complete",
+    ]);
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stage: "retrieval",
+        sources: [expect.objectContaining({ documentId: "KFL-OPS-01" })],
+      }),
+    );
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stage: "verification",
+        attempt: 1,
+        supported: true,
+      }),
+    );
+  });
+
   it("rejects a missing citation even when the verifier accepts the prose", async () => {
     const { service, model } = harness(
       [document],
