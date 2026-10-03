@@ -1,0 +1,95 @@
+Test 1
+Question: What does it cost when a delivery is late?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 2 (run 1 of 3)
+Question: What is this week's fuel surcharge percentage?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 2 (run 2 of 3)
+Question: What is this week's fuel surcharge percentage?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 2 (run 3 of 3)
+Question: What is this week's fuel surcharge percentage?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 3 (run 1 of 3)
+Question: What is Kestrel's policy on team drivers?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 3 (run 2 of 3)
+Question: What is Kestrel's policy on team drivers?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 3 (run 3 of 3)
+Question: What is Kestrel's policy on team drivers?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 4
+Question: A refrigerated load is waiting at the receiver. How much free time is there, and what's the detention rate?
+HTTP status: 200
+Result: The free time for a refrigerated load is 1 hour per stop [KFL-OPS-03]. The detention rate for reefer loads is $95 per hour in 15-minute increments [KFL-OPS-03].
+Citations:
+- KFL-OPS-03 | Temperature-Controlled Loads | revision 2025-04 | temperature-controlled.md
+
+Test 5
+Question: The driver checked in 45 minutes after the appointment. When does free time start?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 6
+Question: What number do I call to file a cargo claim?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none
+
+Test 7
+Question: How long do I have to report concealed damage?
+HTTP status: 200
+Result: You have 5 business days to report concealed damage after delivery [KFL-CLM-01]. Reports made later are reviewed but carry a presumption that the damage happened after delivery [KFL-CLM-01]. Not in the handbook. Please consult the proper web portal.
+Citations:
+- KFL-CLM-01 | Cargo Claims | revision 2025-07 | cargo-claims.md
+
+Test 8
+Question: What is ACC-LA and what does it cost?
+HTTP status: 200
+Result: ACC-LA stands for Limited-access location and costs $110 per stop [KFL-OPS-04]. The source text does not mention the total cost of ACC-LA beyond the per stop charge [KFL-OPS-04].
+Citations:
+- KFL-OPS-04 | Accessorial Charges | revision 2025-06 | accessorials.md
+
+Test 9
+Question: Can I ship a class 3 flammable liquid on Kestrel Priority?
+HTTP status: 200
+Result: No, you cannot ship a class 3 flammable liquid on Kestrel Priority [KFL-OPS-09]. Hazmat is not accepted on Kestrel Priority [KFL-OPS-13]. It moves on Standard or Dedicated service only [KFL-OPS-09].
+Citations:
+- KFL-OPS-09 | Hazardous Materials | revision 2025-03 | hazardous-materials.md
+- KFL-OPS-13 | Service Levels | revision 2025-01 | service-levels.md
+
+Test 10
+Question: How much free time does a Dedicated customer get?
+HTTP status: 200
+Result: The source text does not specify the amount of free time a Dedicated customer gets. [KFL-OPS-13]
+Citations:
+- KFL-OPS-13 | Service Levels | revision 2025-01 | service-levels.md
+
+Test 11
+Question: Dry van, driver on time, left 3.5 hours after the appointment. What's the detention charge?
+HTTP status: 502
+Result: ERROR — VERIFICATION_FAILED — Generated answer could not be verified
+Citations: none

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "e2e": "node scripts/e2e-queries.mjs",
     "query": "npm run build --silent && node dist/query.js",
     "start": "node dist/server.js",
     "test": "vitest run",

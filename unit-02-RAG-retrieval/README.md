@@ -40,6 +40,12 @@ RAG_DEBUG=true npm start
 
 Each query logs the retrieved source metadata, generated draft, verification result and reason, retry findings when applicable, and final cited document IDs. It does not dump the full prompt or corpus text. Because drafts and questions may still be sensitive, tracing is off by default.
 
+The fixed end-to-end exercise set can be run against that service from another terminal. Its output is plain text and can be saved directly:
+
+```sh
+QUERY_API_BASE_URL=http://127.0.0.1:3000 npm run e2e --silent | tee e2e-results.txt
+```
+
 ## Architecture
 
 Startup reads every Markdown file in `corpus/`, validates its visible title and metadata line, drops documents whose status is not `Current`, and creates an in-memory FTS5 table. Each source document remains one retrieval unit. The Porter tokenizer handles small word-form differences, and BM25 gives the title extra weight. Retrieval is fixed at three documents.
