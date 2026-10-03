@@ -21,12 +21,16 @@ npm start
 Then query the service:
 
 ```sh
-curl -H 'content-type: application/json' \
-  -d '{"question":"How is detention billed after the free period?"}' \
-  http://127.0.0.1:3000/query
+npm run query -- "How is detention billed after the free period?"
 ```
 
-`PORT`, `CORPUS_DIR`, `OLLAMA_URL`, and `OLLAMA_MODEL` can override the local defaults.
+The command builds the small CLI client and sends `POST /query` to the running service. Set `QUERY_API_BASE_URL` to target a service on another host or port; the command always calls its `/query` endpoint.
+
+```sh
+QUERY_API_BASE_URL=http://127.0.0.1:4000 npm run query -- "How do I file a cargo claim?"
+```
+
+`PORT`, `CORPUS_DIR`, `OLLAMA_URL`, and `OLLAMA_MODEL` can override the service defaults.
 
 ## Architecture
 
@@ -83,13 +87,14 @@ If Ollama is unreachable or the model is missing, the service returns `503`. Tim
 
 Measurements below were made locally on October 3, 2026 with Node `v22.22.3`, Ollama on loopback, and `qwen3:8b` (`Q4_K_M`). They are observations, not performance guarantees.
 
-- `npm test`: 4 files and 19 tests passed in 0.347 seconds on the final run.
+- `npm test`: 5 files and 22 tests passed in 0.334 seconds in the CLI follow-up run.
 - `npm run typecheck` and `npm run build`: both completed successfully.
 - Detention request: HTTP 200 in 5.739 seconds. It cited current `KFL-OPS-01` and related layover policy `KFL-OPS-02`.
 - Cargo-claims request: HTTP 200 in 6.451 seconds. It cited `KFL-CLM-01`, revision `2025-07`, from `cargo-claims.md`; the superseded 2024 file was absent.
 - Out-of-corpus capital-of-France request: HTTP 200 in 0.001763 seconds with the exact fallback and no citations, demonstrating the model-free path.
 - A second service pointed at unreachable `127.0.0.1:9`: HTTP 503 in 0.013581 seconds with `MODEL_FAILED` and no answer.
 - During prompt tuning, a real detention draft failed both checks and returned HTTP 502 with no answer in 25.043 seconds. After tightening citation syntax and verifier context, the known detention and cargo-claims requests completed successfully.
+- `npm run query -- "What is the capital of France?"` called `POST /query` and printed the exact fallback response.
 
 ## Production work
 

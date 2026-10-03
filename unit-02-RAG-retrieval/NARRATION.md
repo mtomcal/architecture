@@ -33,3 +33,7 @@ The final real requests returned verified current-policy answers for detention a
 ## Explicit cuts
 
 I did not add chunking, embeddings, reranking, a general evaluation harness, a UI, streaming, model routing, persistence, concurrency management, or production security controls. Those would dilute the unit's central demonstration: bounded lexical retrieval and a claim-verification release gate.
+
+## Follow-up — Query command
+
+I added an npm command for calling the running service without writing curl syntax. `npm run query -- "question"` builds a small TypeScript client and sends JSON to `POST /query`. The optional `QUERY_API_BASE_URL` changes only the origin; the client still targets `/query`. Focused tests check the method, path, request body, successful JSON, and API-error preservation, and a real command invocation exercised the endpoint.
